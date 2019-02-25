@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Summary
+{% endblock %}
+
+{% block main %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead class="thead-light">
+                <tr>
+                    <td>Symbol</td>
+                    <td>Name</td>
+                    <td>Shares</td>
+                    <td>Price</td>
+                    <td>Total</td>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for entry in portfolio %}
+                    <tr>
+                        <td>{{ entry[0] }}</td>
+                        <td>{{ entry[1] }}</td>
+                        <td>{{ entry[2] }}</td>
+                        <td>{{ usd(entry[3]) }}</td>
+                        <td>{{ usd(entry[4]) }}</td>
+                    </tr>
+                {% endfor %}
+                    <tr>
+                        <td>CASH</td>
+                        <td colspan="3"></td>
+                        <td>{{ usd(user_cash) }}</td>
+                    </tr>
+            </tbody>
+
+            <tfoot>
+                <tr>
+                    <td colspan="4"></td>
+                    <td>{{ usd(total_value) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+{% endblock %}

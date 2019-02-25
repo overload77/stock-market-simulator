@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block main %}
+    <form action="/register" method="post" id="register-form" class="needs-validation" novalidate>
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="username" placeholder="Username" type="text" required="required">
+        </div>
+        <div class="form-group">
+            <input class="form-control" name="password" placeholder="Password" type="password" required="required" minlength="8">
+        </div>
+        <div class="form-group">
+            <input class="form-control" name="confirmation" placeholder="Password (again)" type="password" required="required" minlength="8">
+        </div>
+        <button class="btn btn-primary" type="submit">Register</button>
+    </form>
+
+    <script>
+        $('#register-form').submit(function(e) {
+            // Todo make ajax request every time user types into box
+
+            let uname = $('#register-form input[name=username]');
+
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = this.responseText.trim();
+                    console.log("This is working");
+                    console.log("Response text:" + this.responseText);
+                    if (response.localeCompare("false") == 0) {
+                        e.preventDefault();
+                        uname.css("border", "1px solid #dc3545");
+                    } else {
+                        uname.css("border", "1px solid #28a745");
+                    }
+                }
+            };
+
+            xhttp.open("GET", "/check?username="+uname.val(), false); // false makes it synchronous
+            xhttp.send();
+        });
+    </script>
+{% endblock %}
