@@ -5,28 +5,32 @@
 {% endblock %}
 
 {% block main %}
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead class="thead-light">
-                <tr>
-                    <td>Symbol</td>
-                    <td>Shares</td>
-                    <td>Price</td>
-                    <td>Transacted</td>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for transaction in transactions %}
+    {% if transactions %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="thead-light">
                     <tr>
-                        <td>{{ transaction[0] }}</td>
-                        <td>{{ transaction[1] }}</td>
-                        <td>{{ usd(transaction[2]) }}</td>
-                        <td>{{ transaction[3] }}</td>
+                        <td><strong>Symbol</strong></td>
+                        <td><strong>Shares</strong></td>
+                        <td><strong>Price</strong></td>
+                        <td><strong>Transacted</strong></td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                </thead>
+
+                <tbody>
+                    {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction[0] }}</td>
+                            <td>{{ transaction[1] }}</td>
+                            <td>{{ usd(transaction[2]) }}</td>
+                            <td>{{ transaction[3] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No transactions found.</p>
+    {% endif %}
 
 {% endblock %}
