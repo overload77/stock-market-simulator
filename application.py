@@ -14,9 +14,6 @@ from helpers import apology, login_required, lookup, usd
 app = Flask(__name__)
 app.secret_key = "5852971084226238701177882"
 
-
-
-
 # Ensure templates are auto-reloaded
 # app.config["TEMPLATES_AUTO_RELOAD"] = True
 
@@ -32,8 +29,6 @@ def after_request(response):
 
 # Custom filter
 # app.jinja_env.filters["usd"] = usd
-
-# Configure session to use filesystem (instead of signed cookies)
 
 # Configure db to use in views
 """ 
@@ -56,7 +51,16 @@ def close_connection(exception):
 @app.route("/")
 @login_required
 def index():
-    """Show portfolio of stocks"""
+    """
+    Show portfolio of stocks
+
+    Args:
+        none
+    
+    Returns:
+        Index page if user is logged in(login page otherwise)
+        
+    """
     # Create new cursor for thread safety
     connection = sqlite3.connect("finance.db")
     db = connection.cursor()
