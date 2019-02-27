@@ -59,8 +59,9 @@ def index():
     
     Returns:
         Index page if user is logged in(login page otherwise)
-        
+
     """
+
     # Create new cursor for thread safety
     connection = sqlite3.connect("finance.db")
     db = connection.cursor()
@@ -72,9 +73,10 @@ def index():
                                 FROM transactions
                                 WHERE user_id = ( ? )
                                 GROUP BY symbol
-                                HAVING SUM(share_number) > 0""",(user_id, )).fetchall()
+                                HAVING SUM(share_number) > 0""", (user_id, )).fetchall()
 
     current_portfolio = list()
+
     # Calculate current value of his/her shares
     total_portfolio_value = 0
     for tup in user_purchases:
@@ -94,7 +96,7 @@ def index():
     # Get user's cash
     user_cash = db.execute("SELECT cash FROM users WHERE id = ( ? )", (user_id, ) ).fetchone()[0]
     total_portfolio_value += user_cash
-
+    
     return render_template("index.html", portfolio=current_portfolio, usd=usd,
                             user_cash=user_cash, total_value=total_portfolio_value)
 
@@ -212,14 +214,17 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = (?)", (request.form.get("username"), )).fetchall()
+        row = db.execute("""
+                          SELECT *
+                          FROM users
+                          WHERE username = ( ? )""", (request.form.get("username"), )).fetchone()
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0][2], request.form.get("password")):
+        if row is None or not check_password_hash(row[2], request.form.get("password")):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0][0]
+        session["user_id"] = row[0]
         session.permanent = True
         
         # Redirect user to home page
