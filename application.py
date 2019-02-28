@@ -63,8 +63,8 @@ def index():
     """
 
     # Create new cursor for thread safety
-    connection = sqlite3.connect("finance.db")
-    db = connection.cursor()
+    conn = sqlite3.connect("finance.db")
+    db = conn.cursor()
 
     # Get user id and his/her purchase info
     user_id = session.get("user_id")
@@ -106,8 +106,8 @@ def index():
 def buy():
     """Buy shares of stock"""
     # Create new cursor for thread safety
-    connection = sqlite3.connect("finance.db")
-    db = connection.cursor()
+    conn = sqlite3.connect("finance.db")
+    db = conn.cursor()
 
     if request.method == "POST":
         if not request.form.get("symbol"):
@@ -138,11 +138,12 @@ def buy():
         # Make a purchase
         db.execute("""
             INSERT INTO transactions (user_id, symbol, share_number, at_price, date)
-            VALUES (?, ?, ?, ?, ?);""", (current_user_id, symbol, share_number, share_price, time) )
+            VALUES (?, ?, ?, ?, ?)""", (current_user_id, symbol, share_number, share_price, time) )
+        conn.commit()
 
         # Update user's cash and commit to the database
         db.execute("UPDATE users SET cash = ( ? ) WHERE id = ( ? )", (users_new_cash, current_user_id) )
-        connection.commit()
+        conn.commit()
 
         flash("Purchase successful!")
         return redirect(url_for("index"))
@@ -155,8 +156,8 @@ def buy():
 def check():
     """Return true if username available, else false, in JSON format"""
     # Create new cursor for thread safety
-    connection = sqlite3.connect("finance.db")
-    db = connection.cursor()
+    conn = sqlite3.connect("finance.db")
+    db = conn.cursor()
 
     # Check if user gave the right input
     if not request.args.get("username"):
@@ -177,8 +178,8 @@ def check():
 def history():
     """Show history of transactions"""
     # Create new cursor for thread safety
-    connection = sqlite3.connect("finance.db")
-    db = connection.cursor()
+    conn = sqlite3.connect("finance.db")
+    db = conn.cursor()
 
     # Get user's id from session
     user_id = session.get("user_id")
@@ -196,8 +197,8 @@ def history():
 def login():
     """Log user in"""
     # Create new cursor for thread safety
-    connection = sqlite3.connect("finance.db")
-    db = connection.cursor()
+    conn = sqlite3.connect("finance.db")
+    db = conn.cursor()
 
     # Forget any user_id
     session.clear()
@@ -273,8 +274,8 @@ def quote():
 def register():
     """Register user"""
     # Create new cursor for thread safety
-    connection = sqlite3.connect("finance.db")
-    db = connection.cursor()
+    conn = sqlite3.connect("finance.db")
+    db = conn.cursor()
 
     if request.method == "POST":
         # Check if user provided right credentials and insert cat meme if he/she didn't
@@ -299,7 +300,7 @@ def register():
         hashed_pass = generate_password_hash(request.form.get("password"))
 
         db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, hashed_pass))
-        connection.commit()
+        conn.commit()
 
         return redirect("/")
     else:
@@ -311,8 +312,8 @@ def register():
 def sell():
     """Sell shares of stock"""
     # Create new cursor for thread safety
-    connection = sqlite3.connect("finance.db")
-    db = connection.cursor()
+    conn = sqlite3.connect("finance.db")
+    db = conn.cursor()
 
     # Get current users id from session
     user_id = session.get("user_id")
@@ -350,7 +351,7 @@ def sell():
 
         # Update user's cash and commit to the database
         db.execute("UPDATE users SET cash = cash + ( ? ) WHERE id = ( ? )", (total_price, user_id))
-        connection.commit()
+        conn.commit()
 
         flash("Sold!")
         return redirect(url_for("index"))
