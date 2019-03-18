@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import psycopg2
 import datetime
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
@@ -13,6 +14,14 @@ from helpers import apology, login_required, lookup, usd
 # Configure application
 app = Flask(__name__)
 app.secret_key = "5852971084226238701177882"
+
+# Configure database connections for development and production
+""" Production """
+# DATABASE_URL = os.environ['DATABASE_URL']
+# conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+""" Development"""
+conn = psycopg2.connect("dbname=finance")
+db   = conn.cursor()
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -54,28 +63,30 @@ def index():
     """Show portfolio of stocks"""
 
     # Create new cursor for thread safety
-    conn = sqlite3.connect("finance.db")
-    db = conn.cursor()
 
     # Get user id and his/her purchase info
     user_id = session.get("user_id")
-    user_purchases = db.execute("""
-                                SELECT symbol, SUM(share_number)
-                                FROM transactions
-                                WHERE user_id = ( ? )
-                                GROUP BY symbol
-                                HAVING SUM(share_number) > 0""", (user_id, )).fetchall()
+    db.execute("""
+                SELECT symbol, SUM(share_number)
+                FROM transactions
+                WHERE user_id = ( %s )
+                GROUP BY symbol
+                HAVING SUM(share_number) > 0""", (user_id, ))
+    user_purchases = db.fetchall()
 
+    # Initialize portfolio as empty list
     current_portfolio = list()
 
     # Calculate current value of his/her shares
     total_portfolio_value = 0
     for tup in user_purchases:
-        symbol = tup[0]
+        symbol = tup[0].strip()
         share_number = tup[1]
 
+        print("111:", symbol, "symbol-len:", len(symbol), "share num:", share_number, "type:", type(symbol))
         # Get stock information from restful api
         stock_info = lookup(symbol)
+        print("Stock info", stock_info, "its type:", type(stock_info))
         current_share_price = stock_info["price"]
         company_name = stock_info["name"]
 
@@ -85,7 +96,9 @@ def index():
         total_portfolio_value += (share_number * current_share_price)
 
     # Get user's cash
-    user_cash = db.execute("SELECT cash FROM users WHERE id = ( ? )", (user_id, ) ).fetchone()[0]
+    db.execute("SELECT cash FROM users WHERE id = ( %s )", (user_id, ) )
+    user_cash = db.fetchone()[0]
+    user_cash = float(user_cash)
     total_portfolio_value += user_cash
     
     return render_template("index.html", portfolio=current_portfolio, usd=usd,
@@ -97,8 +110,6 @@ def index():
 def buy():
     """Buy shares of stock"""
     # Create new cursor for thread safety
-    conn = sqlite3.connect("finance.db")
-    db = conn.cursor()
 
     if request.method == "POST":
         if not request.form.get("symbol"):
@@ -119,7 +130,9 @@ def buy():
         time = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
         # Get current users cash from db
-        users_cash = db.execute("SELECT cash FROM users WHERE id = ( ? );", (current_user_id, )).fetchone()[0]
+        db.execute("SELECT cash FROM users WHERE id = ( %s );", (current_user_id, ))
+        users_cash = db.fetchone()[0]
+        users_cash = float(users_cash)
 
         # Check if user has enough money and insert breaking bad meme if he/she has not.
         users_new_cash = users_cash - (share_number * share_price)
@@ -129,11 +142,11 @@ def buy():
         # Make a purchase
         db.execute("""
             INSERT INTO transactions (user_id, symbol, share_number, at_price, date)
-            VALUES (?, ?, ?, ?, ?)""", (current_user_id, symbol, share_number, share_price, time) )
+            VALUES (%s, %s, %s, %s, %s)""", (current_user_id, symbol, share_number, share_price, time) )
         conn.commit()
 
         # Update user's cash and commit to the database
-        db.execute("UPDATE users SET cash = ( ? ) WHERE id = ( ? )", (users_new_cash, current_user_id) )
+        db.execute("UPDATE users SET cash = ( %s ) WHERE id = ( %s )", (users_new_cash, current_user_id) )
         conn.commit()
 
         flash("Purchase successful!")
@@ -147,8 +160,6 @@ def buy():
 def check():
     """Return true if username available, else false, in JSON format"""
     # Create new cursor for thread safety
-    conn = sqlite3.connect("finance.db")
-    db = conn.cursor()
 
     # Check if user gave the right input
     if not request.args.get("username"):
@@ -158,7 +169,9 @@ def check():
     username = request.args.get("username")
 
     if len(username) > 0:
-        if (db.execute("SELECT * FROM users WHERE username = ( ? )", (username, )).fetchone()) is None:
+        db.execute("SELECT * FROM users WHERE username = ( %s )", (username, ))
+        is_none = db.fetchone()
+        if is_none is None:
             return jsonify(True)
 
     return jsonify(False)
@@ -169,17 +182,16 @@ def check():
 def history():
     """Show history of transactions"""
     # Create new cursor for thread safety
-    conn = sqlite3.connect("finance.db")
-    db = conn.cursor()
 
     # Get user's id from session
     user_id = session.get("user_id")
 
     # Get transactions associated with this user
-    transactions = db.execute("""
-                              SELECT symbol, share_number, at_price, date
-                              FROM transactions
-                              WHERE user_id = ( ? )""", (user_id, ) ).fetchall()
+    db.execute("""
+                SELECT symbol, share_number, at_price, date
+                FROM transactions
+                WHERE user_id = ( %s )""", (user_id, ) )
+    transactions = db.fetchall()
 
     return render_template("history.html", transactions=transactions, usd=usd)
 
@@ -188,8 +200,6 @@ def history():
 def login():
     """Log user in"""
     # Create new cursor for thread safety
-    conn = sqlite3.connect("finance.db")
-    db = conn.cursor()
 
     # Forget any user_id
     session.clear()
@@ -206,10 +216,11 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        row = db.execute("""
-                          SELECT *
-                          FROM users
-                          WHERE username = ( ? )""", (request.form.get("username"), )).fetchone()
+        db.execute("""
+                    SELECT *
+                    FROM users
+                    WHERE username = ( %s )""", (request.form.get("username"), ))
+        row = db.fetchone()
 
         # Ensure username exists and password is correct
         if row is None or not check_password_hash(row[2], request.form.get("password")):
@@ -260,13 +271,10 @@ def quote():
 
 
 
-
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
     # Create new cursor for thread safety
-    conn = sqlite3.connect("finance.db")
-    db = conn.cursor()
 
     if request.method == "POST":
         # Check if user provided right credentials and insert cat meme if he/she didn't
@@ -281,7 +289,8 @@ def register():
 
         # Check if that username already exists
         username = request.form.get("username")
-        if db.execute("SELECT * FROM users WHERE username = ( ? )", (username, )).fetchone() is not None:
+        db.execute("SELECT * FROM users WHERE username = ( %s )", (username, ))
+        if db.fetchone() is not None:
             return apology("choose another username", 403)
 
         password = request.form.get("password")
@@ -290,7 +299,7 @@ def register():
 
         hashed_pass = generate_password_hash(request.form.get("password"))
 
-        db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, hashed_pass))
+        db.execute("INSERT INTO users (username, hash) VALUES (%s, %s)", (username, hashed_pass))
         conn.commit()
 
         return redirect("/")
@@ -303,8 +312,6 @@ def register():
 def sell():
     """Sell shares of stock"""
     # Create new cursor for thread safety
-    conn = sqlite3.connect("finance.db")
-    db = conn.cursor()
 
     # Get current users id from session
     user_id = session.get("user_id")
@@ -321,10 +328,11 @@ def sell():
         shares = int(request.form.get("shares"))
 
         # Check if user really has that share (more validation)
-        users_shares = db.execute("""
-                                  SELECT SUM(share_number) FROM transactions
-                                  WHERE user_id = ( ? )
-                                  AND symbol = ( ? )""", (user_id, symbol) ).fetchone()[0]
+        db.execute("""
+                    SELECT SUM(share_number) FROM transactions
+                    WHERE user_id = ( %s )
+                    AND symbol = ( %s )""", (user_id, symbol) )
+        users_shares = db.fetchone()[0]
 
         # Check user have more shares than he/she wants to sell (even more validation)
         if users_shares - shares < 0:
@@ -338,22 +346,23 @@ def sell():
         # Sell shares
         db.execute("""
                    INSERT INTO transactions (user_id, symbol, share_number, at_price, date)
-                   VALUES (?, ?, ?, ?, ?)""", (user_id, symbol, -shares, price, time))
+                   VALUES (%s, %s, %s, %s, %s)""", (user_id, symbol, -shares, price, time))
 
         # Update user's cash and commit to the database
-        db.execute("UPDATE users SET cash = cash + ( ? ) WHERE id = ( ? )", (total_price, user_id))
+        db.execute("UPDATE users SET cash = cash + ( %s ) WHERE id = ( %s )", (total_price, user_id))
         conn.commit()
 
         flash("Sold!")
         return redirect(url_for("index"))
     else:
-        symbol_tuples = db.execute("""
-            SELECT symbol FROM transactions
-            WHERE user_id = ( ? )
-            GROUP BY symbol
-            HAVING SUM(share_number) > 0""", (user_id, )).fetchall()
+        db.execute("""
+                    SELECT symbol FROM transactions
+                    WHERE user_id = ( %s )
+                    GROUP BY symbol
+                    HAVING SUM(share_number) > 0""", (user_id, ))
+        symbol_tuples = db.fetchall()
 
-        symbols = [tup[0] for tup in symbol_tuples]
+        symbols = [tup[0].strip() for tup in symbol_tuples]
         return render_template("sell.html", symbols=symbols)
 
 
