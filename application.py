@@ -1,5 +1,6 @@
 import os
-import sqlite3, datetime
+import sqlite3
+import datetime
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_session import Session
@@ -10,12 +11,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology, login_required, lookup, usd
 
 # Configure application
-
 app = Flask(__name__)
 app.secret_key = "5852971084226238701177882"
 
 # Ensure templates are auto-reloaded
-# app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # Ensure responses aren't cached
 """
@@ -51,16 +51,7 @@ def close_connection(exception):
 @app.route("/")
 @login_required
 def index():
-    """
-    Show portfolio of stocks
-
-    Args:
-        none
-    
-    Returns:
-        Index page if user is logged in(login page otherwise)
-
-    """
+    """Show portfolio of stocks"""
 
     # Create new cursor for thread safety
     conn = sqlite3.connect("finance.db")

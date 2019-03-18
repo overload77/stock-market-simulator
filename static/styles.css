@@ -54,6 +54,18 @@ main img
     border: 1px solid #dc3545;
 }
 
+.custom-focus:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220,53,69,.25) !important;
+}
+
+.username-feedback {
+    display: none;
+    width: 100%;
+    margin: 0.25rem;
+    font-size: 80%;
+    color: #dc3545;
+}
+
 @media only screen and (max-width: 800px) {
 	#unseen table td:nth-child(2),
 	#unseen table th:nth-child(2) {display: none;}

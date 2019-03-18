@@ -8,10 +8,18 @@
     <form action="/register" method="post" id="register-form" class="needs-validation" novalidate>
         <div class="form-group">
             <input autocomplete="off" autofocus class="form-control" name="username" placeholder="Username" type="text" required="required">
+            <div class="username-feedback">
+                Username already taken
+            </div>
         </div>
+
         <div class="form-group">
             <input class="form-control" name="password" placeholder="Password" type="password" required="required" minlength="8">
+            <div class="invalid-feedback">
+                Passwords must be at least 8 characters 
+            </div>
         </div>
+        
         <div class="form-group">
             <input class="form-control" name="confirmation" placeholder="Password (again)" type="password" required="required" minlength="8">
         </div>
@@ -23,18 +31,22 @@
             // Todo make ajax request every time user types into box
 
             let uname = $('#register-form input[name=username]');
+            let userFeedback = $('.username-feedback');
 
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     var response = this.responseText.trim();
-                    console.log("This is working");
                     console.log("Response text:" + this.responseText);
                     if (response.localeCompare("false") == 0) {
                         e.preventDefault();
+                        userFeedback.css("display", "block");
                         uname.css("border", "1px solid #dc3545");
+                        uname.addClass("custom-focus");
                     } else {
+                        userFeedback.css("display", "none");
                         uname.css("border", "1px solid #28a745");
+                        uname.removeClass("custom-focus");
                     }
                 }
             };

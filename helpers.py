@@ -24,7 +24,14 @@ def login_required(f):
     """
     Decorate routes to require login.
 
-    http://flask.pocoo.org/docs/1.0/patterns/viewdecorators/
+    Args:
+        Function that will be wrapped up
+
+    Returns:
+        Wrapped function if user has logged in, login page otherwise 
+
+    Ref:
+        http://flask.pocoo.org/docs/1.0/patterns/viewdecorators/
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -35,7 +42,16 @@ def login_required(f):
 
 
 def lookup(symbol):
-    """Look up quote for symbol."""
+    """
+    Look up quote for symbol.
+    
+    Args:
+        symbol (str): String to be queried on api
+
+    Returns:
+        dict: A dictionary with name, price and symbol keys
+
+    """
 
     # Contact API
     try:
@@ -57,5 +73,14 @@ def lookup(symbol):
 
 
 def usd(value):
-    """Format value as USD."""
+    """
+    Format value as USD with 2 decimal places.
+    
+    Args:
+        value (float): Value to be converted
+
+    Returns:
+        str: Formatted string representation of value
+
+    """
     return f"${value:,.2f}"
