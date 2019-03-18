@@ -83,10 +83,8 @@ def index():
         symbol = tup[0].strip()
         share_number = tup[1]
 
-        print("111:", symbol, "symbol-len:", len(symbol), "share num:", share_number, "type:", type(symbol))
         # Get stock information from restful api
         stock_info = lookup(symbol)
-        print("Stock info", stock_info, "its type:", type(stock_info))
         current_share_price = stock_info["price"]
         company_name = stock_info["name"]
 
