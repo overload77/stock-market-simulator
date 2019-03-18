@@ -13,15 +13,17 @@ from helpers import apology, login_required, lookup, usd
 
 # Configure application
 app = Flask(__name__)
-app.secret_key = "5852971084226238701177882"
+app.secret_key = os.environ['SECRET_KEY']
 
 # Configure database connections for development and production
 """ Production """
-# DATABASE_URL = os.environ['DATABASE_URL']
-# conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-""" Development"""
-conn = psycopg2.connect("dbname=finance")
+DATABASE_URL = os.environ['DATABASE_URL']
+conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 db   = conn.cursor()
+
+""" Development """
+# conn = psycopg2.connect("dbname=finance")
+# db   = conn.cursor()
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
