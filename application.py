@@ -64,8 +64,6 @@ def close_connection(exception):
 def index():
     """Show portfolio of stocks"""
 
-    # Create new cursor for thread safety
-
     # Get user id and his/her purchase info
     user_id = session.get("user_id")
     db.execute("""
@@ -111,7 +109,6 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
-    # Create new cursor for thread safety
 
     if request.method == "POST":
         if not request.form.get("symbol"):
@@ -161,7 +158,6 @@ def buy():
 @app.route("/check", methods=["GET"])
 def check():
     """Return true if username available, else false, in JSON format"""
-    # Create new cursor for thread safety
 
     # Check if user gave the right input
     if not request.args.get("username"):
@@ -183,7 +179,6 @@ def check():
 @login_required
 def history():
     """Show history of transactions"""
-    # Create new cursor for thread safety
 
     # Get user's id from session
     user_id = session.get("user_id")
@@ -201,7 +196,6 @@ def history():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
-    # Create new cursor for thread safety
 
     # Forget any user_id
     session.clear()
@@ -276,7 +270,6 @@ def quote():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
-    # Create new cursor for thread safety
 
     if request.method == "POST":
         # Check if user provided right credentials and insert cat meme if he/she didn't
@@ -313,7 +306,6 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    # Create new cursor for thread safety
 
     # Get current users id from session
     user_id = session.get("user_id")
