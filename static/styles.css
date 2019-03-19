@@ -66,6 +66,16 @@ main img
     color: #dc3545;
 }
 
+.uLabel {
+    font-size: 20px;
+    color: #333;
+}
+
+.accUname {
+    font-size: 25px;
+    color: #636c72;
+}
+
 @media only screen and (max-width: 800px) {
 	#unseen table td:nth-child(2),
 	#unseen table th:nth-child(2) {display: none;}
