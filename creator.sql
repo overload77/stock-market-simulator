@@ -13,4 +13,9 @@ CREATE TABLE transactions (purchase_id SERIAL PRIMARY KEY NOT NULL,
                             at_price NUMERIC NOT NULL,
                             date VARCHAR(255) NOT NULL);
 
+-- In Postgres:
+-- AUTOINCREMENT is SERIAL in postgres(and also INTEGER so no need to specify as INT)
+-- INTEGER is INT
+-- NUMERIC returns decimal.Decimal instead of float
+-- CHAR(5) makes string exactly 5 chars by appending extra spaces
 
