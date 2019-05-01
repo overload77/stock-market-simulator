@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS transactions;
 CREATE TABLE users (id SERIAL PRIMARY KEY NOT NULL,
                     username TEXT NOT NULL,
                     hash TEXT NOT NULL,
-                    cash NUMERIC NOT NULL DEFAULT 10000.00 );
+                    cash NUMERIC NOT NULL DEFAULT 10000.00);
 
 CREATE TABLE transactions (purchase_id SERIAL PRIMARY KEY NOT NULL,
                             user_id INT NOT NULL,
